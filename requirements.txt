@@ -1,0 +1,7 @@
+streamlit>=1.36.0
+google-api-python-client
+pandas
+plotly
+openpyxl
+beautifulsoup4
+requests
