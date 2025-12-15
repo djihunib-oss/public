@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 from collections import Counter
 from datetime import datetime, timedelta
+from textwrap import dedent
 
 # 사용자 정의 서비스 임포트
 from services.youtube_service import get_youtube_trending_tags, search_youtube_videos
@@ -30,6 +31,10 @@ st.markdown("""
     /* Main App Background */
     .stApp {
         background-color: #F5F7F9;
+        background-image: 
+            radial-gradient(at 0% 0%, rgba(30, 58, 138, 0.03) 0px, transparent 50%), 
+            radial-gradient(at 100% 100%, rgba(30, 58, 138, 0.03) 0px, transparent 50%);
+        background-attachment: fixed;
     }
     
     /* Buttons */
@@ -88,10 +93,98 @@ st.markdown("""
         color: white !important;
     }
     
+    /* Custom News Card Design */
+    .news-card {
+        background-color: white;
+        padding: 1.25rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        margin-bottom: 1rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: 1px solid #EAEAEA;
+    }
+    
+    .news-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        border-color: #1E3A8A;
+    }
+    
+    .news-rank {
+        font-weight: 900;
+        color: #1E3A8A;
+        font-size: 1.4rem;
+        margin-right: 0.5rem;
+        font-family: 'Roboto', sans-serif; /* 숫자는 Roboto가 깔끔 */
+    }
+    
+    .news-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1f2937;
+        text-decoration: none;
+    }
+    
+    .news-title:hover {
+        color: #1E3A8A;
+        text-decoration: underline;
+    }
+    
+    .news-desc {
+        font-size: 0.95rem;
+        color: #6b7280;
+        margin-top: 0.5rem;
+        line-height: 1.6;
+    }
+    
+    .news-meta {
+        font-size: 0.8rem;
+        color: #9ca3af;
+        margin-top: 0.8rem;
+        display: flex;
+        justify-content: flex-end;
+    }
+
 </style>
 """, unsafe_allow_html=True)
 
 # --- Shared Utility Functions ---
+def display_news_card_list(items, type='ranking'):
+    """
+    뉴스 리스트를 카드 UI로 렌더링합니다.
+    type: 'ranking' | 'search'
+    """
+    for idx, item in enumerate(items):
+        rank_html = ""
+        desc_html = ""
+        meta_html = ""
+        
+        # 랭킹 표시
+        if type == 'ranking':
+            rank_val = item.get('Rank', idx + 1)
+            rank_html = f"<span class='news-rank'>{rank_val}</span>"
+            
+        # 요약 표시
+        if item.get('Description'):
+            desc = item['Description'][:200] + "..." if len(item['Description']) > 200 else item['Description']
+            desc_html = f"<div class='news-desc'>{desc}</div>"
+            
+        # 메타 정보 (날짜 등)
+        if item.get('Date'):
+            date_str = item['Date']
+            meta_html = f"<div class='news-meta'>📅 {date_str}</div>"
+            
+        html_content = f"""
+<div class="news-card">
+<div style="display: flex; align-items: baseline;">
+{rank_html}
+<a href="{item['Link']}" target="_blank" class="news-title">{item['Title']}</a>
+</div>
+{desc_html}
+{meta_html}
+</div>
+"""
+        st.markdown(html_content, unsafe_allow_html=True)
 def display_video_grid(video_list, num_columns=2):
     """
     비디오 리스트를 그리드(앨범) 형태로 출력합니다.
@@ -165,15 +258,9 @@ def page_trend_analysis():
                         fig = px.bar(df_tags, x='Frequency', y='Keyword', orientation='h', text='Frequency')
                         st.plotly_chart(fig, use_container_width=True)
                         
-                        # 데이터 테이블
+                        # 데이터 리스트 (카드 UI)
                         with st.expander("상세 데이터 보기"):
-                            st.dataframe(
-                                pd.DataFrame(raw_data_list),
-                                use_container_width=True,
-                                column_config={
-                                    "Link": st.column_config.LinkColumn("Watch Video", display_text="YouTube에서 보기")
-                                }
-                            )
+                             display_news_card_list(raw_data_list, type='youtube')
                     else:
                         st.warning("데이터를 가져올 수 없습니다.")
 
@@ -219,15 +306,9 @@ def page_trend_analysis():
                         fig = px.bar(df_words, x='Frequency', y='Keyword', orientation='h', text='Frequency', color='Frequency', color_continuous_scale='Viridis')
                         st.plotly_chart(fig, use_container_width=True)
                         
-                        # 데이터 테이블
+                        # 데이터 리스트 (카드 UI)
                         with st.expander("수집된 기사 목록"):
-                            st.dataframe(
-                                pd.DataFrame(articles),
-                                use_container_width=True,
-                                column_config={
-                                    "Link": st.column_config.LinkColumn("Read Article", display_text="기사 원문 보기")
-                                }
-                            )
+                             display_news_card_list(articles, type='search')
                     else:
                         st.warning("트렌드 데이터를 찾을 수 없습니다.")
 
@@ -358,21 +439,7 @@ def page_naver_news():
             ranking_news = get_naver_ranking_news(limit=50)
             
         if ranking_news:
-             # 데이터프레임으로 변환하여 표시
-            df_ranking = pd.DataFrame(ranking_news)
-            # 컬럼 순서 지정
-            df_ranking = df_ranking[['Rank', 'Title', 'Link']]
-            
-            st.dataframe(
-                df_ranking,
-                use_container_width=True,
-                column_config={
-                    "Rank": st.column_config.NumberColumn("순위", width="small"),
-                    "Title": st.column_config.TextColumn("제목", width="large"),
-                    "Link": st.column_config.LinkColumn("링크", display_text="기사 보기")
-                },
-                hide_index=True
-            )
+            display_news_card_list(ranking_news, type='ranking')
         else:
             st.warning("랭킹 뉴스를 가져올 수 없습니다.")
 
@@ -409,15 +476,7 @@ def page_naver_news():
                     
                     if news_list:
                         st.success(f"{len(news_list)}개의 뉴스를 가져왔습니다.")
-                        st.dataframe(
-                            pd.DataFrame(news_list),
-                            use_container_width=True,
-                            column_config={
-                                "Link": st.column_config.LinkColumn("Link", display_text="기사 이동"),
-                                "Description": st.column_config.TextColumn("요약", width="large")
-                            },
-                            hide_index=True
-                        )
+                        display_news_card_list(news_list, type='search')
                     else:
                         st.warning("검색 결과가 없습니다.")
 
