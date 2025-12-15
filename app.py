@@ -15,6 +15,82 @@ st.set_page_config(
     layout="wide"
 )
 
+# --- Custom CSS for Modern Minimalist Design ---
+st.markdown("""
+<style>
+    /* Font: Pretendard */
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    
+    html, body, [class*="css"] {
+        font-family: 'Pretendard', sans-serif !important;
+        background-color: #F5F7F9; /* 연한 회색 배경 */
+        color: #333333;
+    }
+    
+    /* Main App Background */
+    .stApp {
+        background-color: #F5F7F9;
+    }
+    
+    /* Buttons */
+    .stButton > button {
+        background-color: #1E3A8A; /* Deep Blue 포인트 컬러 */
+        color: white !important;
+        border-radius: 8px;
+        border: none;
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .stButton > button:hover {
+        background-color: #152C69 !important; /* 더 진한 블루 (Hover) */
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+    }
+    
+    /* Inputs (Text Input, Selectbox, etc.) */
+    .stTextInput > div > div > input, 
+    .stSelectbox > div > div > div {
+        border-radius: 8px;
+        border: 1px solid #E0E0E0;
+        background-color: white;
+    }
+    
+    /* Card UI Effect for Expanders and Dataframes */
+    .streamlit-expanderHeader {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Soft Shadow */
+    }
+    
+    .stDataFrame {
+        background-color: white;
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Soft Shadow */
+    }
+    
+    /* Tabs styling */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 10px;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        background-color: white;
+        border-radius: 8px 8px 0 0;
+        box-shadow: 0 -1px 2px rgba(0,0,0,0.05);
+        padding: 10px 20px;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background-color: #1E3A8A !important;
+        color: white !important;
+    }
+    
+</style>
+""", unsafe_allow_html=True)
+
 # --- Shared Utility Functions ---
 def display_video_grid(video_list, num_columns=2):
     """
